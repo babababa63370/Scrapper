@@ -11,13 +11,9 @@ services:
         fromDatabase:
           name: web-scraper-db
           property: connectionString
-    disk:
-      name: data
-      mountPath: /data
-      sizeGB: 1
 
-  - type: pserv
-    name: web-scraper-db
-    ipWhitelist: []
+databases:
+  - name: web-scraper-db
+    databaseName: web_scraper
+    user: web_scraper_user
     plan: free
-    postgresSQLVersion: "15"
