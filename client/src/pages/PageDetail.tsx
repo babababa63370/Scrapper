@@ -2,6 +2,7 @@ import { useScrapedPage } from "@/hooks/use-pages";
 import { Link, useRoute } from "wouter";
 import { ArrowLeft, ExternalLink, Calendar, Copy, Check } from "lucide-react";
 import { CodeViewer } from "@/components/CodeViewer";
+import { PagePreview } from "@/components/PagePreview";
 import { format } from "date-fns";
 import { useState } from "react";
 
@@ -73,12 +74,21 @@ export default function PageDetail() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-3 space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-border p-4 shadow-sm">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500"></span>
+              Rendered Preview
+            </h3>
+            <PagePreview htmlContent={page.htmlContent} cssContent={page.cssContent} />
+          </div>
+        </div>
+        <div className="space-y-4">
           <div className="bg-white rounded-xl border border-border p-4 shadow-sm">
             <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-primary"></span>
-              HTML Source Preview
+              HTML Source
             </h3>
             <CodeViewer code={page.htmlContent} language="html" />
           </div>
