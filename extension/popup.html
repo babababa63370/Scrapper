@@ -2,15 +2,64 @@
 <html>
 <head>
   <style>
-    body { width: 200px; padding: 10px; font-family: sans-serif; }
-    button { width: 100%; padding: 8px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
-    button:hover { background: #0056b3; }
-    #status { margin-top: 10px; font-size: 12px; text-align: center; }
+    * { box-sizing: border-box; }
+    body { 
+      width: 300px; 
+      padding: 12px; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+    }
+    h3 { margin: 0 0 10px 0; font-size: 14px; }
+    button { 
+      width: 100%; 
+      padding: 10px; 
+      margin-bottom: 10px;
+      cursor: pointer; 
+      background: #4a90e2; 
+      color: white; 
+      border: none; 
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    button:hover { background: #357abd; }
+    button:active { transform: scale(0.98); }
+    #status { 
+      margin: 10px 0; 
+      font-size: 12px; 
+      text-align: center;
+      padding: 8px;
+      border-radius: 4px;
+      min-height: 20px;
+    }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    .info { background: #d1ecf1; color: #0c5460; }
+    .settings { border-top: 1px solid #ccc; padding-top: 10px; margin-top: 10px; }
+    .form-group { margin-bottom: 10px; }
+    label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+    input { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
+    input:focus { outline: none; border-color: #4a90e2; box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1); }
+    .button-group { display: flex; gap: 8px; }
+    .button-group button { flex: 1; margin-bottom: 0; }
+    .button-group button.small { padding: 6px; font-size: 12px; }
   </style>
 </head>
 <body>
+  <h3>Web Scraper</h3>
   <button id="scrapeBtn">Scrape Page</button>
   <div id="status"></div>
+  
+  <div class="settings">
+    <div class="form-group">
+      <label for="serverUrl">Server URL:</label>
+      <input type="url" id="serverUrl" placeholder="https://example.replit.dev">
+    </div>
+    <div class="button-group">
+      <button id="saveBtn" class="small">Save</button>
+      <button id="resetBtn" class="small">Reset</button>
+    </div>
+  </div>
+  
   <script src="popup.js"></script>
 </body>
 </html>

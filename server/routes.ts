@@ -8,16 +8,6 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Allow CORS for the extension
-  app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*"); // Allow all for demo purposes, restrict in prod
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    if (req.method === "OPTIONS") {
-      return res.sendStatus(200);
-    }
-    next();
-  });
 
   app.get(api.pages.list.path, async (req, res) => {
     const pages = await storage.getPages();
