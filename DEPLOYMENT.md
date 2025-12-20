@@ -57,6 +57,127 @@ docker run -p 5000:5000 \
   web-scraper
 ```
 
+## Render Deployment
+
+Render est une plateforme moderne et facile à utiliser. Meilleure que Heroku pour les nouveaux projets.
+
+### Étape 1 : Créer une Base de Données PostgreSQL
+
+1. Allez sur [render.com](https://render.com)
+2. Connectez-vous ou créez un compte
+3. **New +** → **PostgreSQL**
+   - **Name**: `web-scraper-db`
+   - **Database**: `scraper`
+   - **User**: `scraper_user`
+   - **Region**: Sélectionnez le plus proche
+   - **PostgreSQL Version**: 15
+4. Cliquez **Create Database**
+5. **Attendez** quelques minutes (la DB se crée)
+6. Copiez la **External Database URL** (vous en aurez besoin)
+
+### Étape 2 : Créer un Service Web
+
+1. **New +** → **Web Service**
+2. **Connectez votre dépôt Git**:
+   - Si vous avez un dépôt GitHub: Connectez-le
+   - Sinon: Utilisez le bouton **Deploy from Git** avec l'URL d'un nouveau dépôt
+3. Configurez le service:
+   - **Name**: `web-scraper`
+   - **Environment**: `Node`
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm run start`
+   - **Plan**: Commencez avec Free (sinon Paid si vous avez besoin de plus)
+4. Cliquez **Create Web Service**
+
+### Étape 3 : Ajouter les Variables d'Environnement
+
+Dans le dashboard du Service Web:
+
+1. Allez à **Environment**
+2. Ajoutez ces variables:
+
+```
+DATABASE_URL = [Copiez l'External Database URL de PostgreSQL ci-dessus]
+NODE_ENV = production
+PORT = 5000
+```
+
+3. Cliquez **Save**
+4. Le service redéploie automatiquement
+
+### Étape 4 : Initialiser la Base de Données
+
+Une fois déployé, exécutez les migrations:
+
+1. Dans le dashboard Render, allez à **Web Service** > **Shell**
+2. Exécutez:
+
+```bash
+npm run db:push
+```
+
+Attendez que les migrations se terminent.
+
+### Étape 5 : Tester
+
+1. Visitez l'URL générée par Render (ex: `https://web-scraper-xxxxx.onrender.com`)
+2. Vous devriez voir le dashboard
+3. Testez l'endpoint: `https://web-scraper-xxxxx.onrender.com/health`
+   - Réponse attendue: `{"status":"ok"}`
+
+### Étape 6 : Configurer l'Extension Firefox
+
+1. Installer l'extension Firefox (dossier `extension/`)
+2. Cliquer l'icône de l'extension
+3. **Server URL**: `https://web-scraper-xxxxx.onrender.com`
+4. Cliquez **Save**
+5. Testez en scrapant une page!
+
+### Redéployer après des changements
+
+**Automatique**: Si vous poussez vers Git, Render redéploie automatiquement
+
+**Manuel**: Dashboard → Web Service → **Manual Deploy** → **Deploy latest commit**
+
+### Conseils Render
+
+**Gratuit**: Le plan Free fonctionne mais l'app s'éteint après 15 min d'inactivité
+- Parfait pour tester!
+- Upgrade vers Paid si vous avez besoin de 24/7
+
+**Logs**: Dashboard → **Logs** pour déboguer
+
+**Base de données**: PostgreSQL est toujours payante (~$7/mois)
+
+**Domaine personnalisé**: Settings → **Custom Domain** → Suivez les instructions
+
+### Troubleshooting Render
+
+**"Deployment failed"**
+```bash
+# Vérifiez la compilation locale:
+npm run build
+
+# Vérifiez les logs:
+# Dashboard → Logs
+```
+
+**"Database connection error"**
+```
+- Vérifiez DATABASE_URL dans Environment
+- Relancez les migrations: npm run db:push
+- Attendez que la DB soit prête (quelques minutes)
+```
+
+**App démarre puis crash**
+```
+- Vérifiez NODE_ENV=production
+- Vérifiez PORT=5000
+- Consultez les logs
+```
+
+---
+
 ## Railway / Heroku / Other PaaS
 
 ### Environment Variables
