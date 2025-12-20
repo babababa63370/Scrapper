@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: web-scraper
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: web-scraper-db
+          property: connectionString
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+
+  - type: pserv
+    name: web-scraper-db
+    ipWhitelist: []
+    plan: free
+    postgresSQLVersion: "15"
