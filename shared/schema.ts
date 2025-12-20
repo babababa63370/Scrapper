@@ -7,6 +7,7 @@ export const scrapedPages = pgTable("scraped_pages", {
   url: text("url").notNull(),
   title: text("title"),
   htmlContent: text("html_content").notNull(), // The raw HTML
+  cssContent: text("css_content"), // All CSS from the page
   createdAt: timestamp("created_at").defaultNow(),
 });
 

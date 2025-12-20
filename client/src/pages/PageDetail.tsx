@@ -9,14 +9,21 @@ export default function PageDetail() {
   const [, params] = useRoute("/page/:id");
   const id = params ? parseInt(params.id) : 0;
   const { data: page, isLoading, error } = useScrapedPage(id);
-  const [copied, setCopied] = useState(false);
+  const [copiedType, setCopiedType] = useState<'html' | 'css' | null>(null);
 
-  const handleCopy = () => {
-    if (page?.htmlContent) {
-      navigator.clipboard.writeText(page.htmlContent);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+  const handleCopy = (type: 'html' | 'css') => {
+    let content = '';
+    if (type === 'html' && page?.htmlContent) {
+      content = page.htmlContent;
+    } else if (type === 'css' && page?.cssContent) {
+      content = page.cssContent;
+    } else {
+      return;
     }
+    
+    navigator.clipboard.writeText(content);
+    setCopiedType(type);
+    setTimeout(() => setCopiedType(null), 2000);
   };
 
   if (isLoading) return <div className="p-12 text-center animate-pulse">Loading details...</div>;
@@ -46,14 +53,23 @@ export default function PageDetail() {
             </span>
           </div>
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto flex gap-2">
           <button 
-            onClick={handleCopy}
+            onClick={() => handleCopy('html')}
             className="btn-secondary"
           >
-            {copied ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
-            {copied ? "Copied HTML" : "Copy HTML"}
+            {copiedType === 'html' ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+            {copiedType === 'html' ? "Copied HTML" : "Copy HTML"}
           </button>
+          {page.cssContent && (
+            <button 
+              onClick={() => handleCopy('css')}
+              className="btn-secondary"
+            >
+              {copiedType === 'css' ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+              {copiedType === 'css' ? "Copied CSS" : "Copy CSS"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -66,6 +82,15 @@ export default function PageDetail() {
             </h3>
             <CodeViewer code={page.htmlContent} language="html" />
           </div>
+          {page.cssContent && (
+            <div className="bg-white rounded-xl border border-border p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                CSS Styles
+              </h3>
+              <CodeViewer code={page.cssContent} language="css" />
+            </div>
+          )}
         </div>
       </div>
     </div>

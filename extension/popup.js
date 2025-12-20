@@ -46,14 +46,40 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
     
     const tab = tabs[0];
     
-    // Execute content script to get HTML using Manifest V3 API
+    // Execute content script to get HTML and CSS using Manifest V3 API
     const results = await browser.scripting.executeScript({
       target: { tabId: tabs[0].id },
       func: () => {
+        // Collect all CSS from stylesheets
+        let cssContent = '';
+        
+        // Get CSS from <style> tags
+        const styleTags = document.querySelectorAll('style');
+        styleTags.forEach(style => {
+          cssContent += style.textContent + '\n';
+        });
+        
+        // Get CSS from <link> tags (external stylesheets) - collect URLs for reference
+        const linkTags = document.querySelectorAll('link[rel="stylesheet"]');
+        linkTags.forEach(link => {
+          cssContent += '\n/* External stylesheet: ' + link.href + ' */\n';
+        });
+        
+        // Get all style attributes from elements
+        const elementsWithStyles = document.querySelectorAll('[style]');
+        if (elementsWithStyles.length > 0) {
+          cssContent += '\n/* Inline styles from page elements */\n';
+          elementsWithStyles.forEach((el, index) => {
+            cssContent += '/* Element ' + index + ': ' + el.tagName + ' */\n';
+            cssContent += '/* style="' + el.getAttribute('style') + '" */\n';
+          });
+        }
+        
         return {
           html: document.documentElement.outerHTML,
           title: document.title,
-          url: window.location.href
+          url: window.location.href,
+          css: cssContent
         };
       }
     });
@@ -82,7 +108,8 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
       body: JSON.stringify({
         url: data.url,
         title: data.title,
-        htmlContent: data.html
+        htmlContent: data.html,
+        cssContent: data.css
       })
     });
     
