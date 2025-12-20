@@ -4,7 +4,7 @@
   "version": "1.0",
   "description": "Scrape HTML content from current page",
   "permissions": [
-    "activeTab",
+    "scripting",
     "storage"
   ],
   "host_permissions": [

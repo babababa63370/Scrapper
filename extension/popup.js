@@ -46,17 +46,24 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
     
     const tab = tabs[0];
     
-    // Execute content script to get HTML
-    const results = await browser.tabs.executeScript(tabs[0].id, {
-      code: 'JSON.stringify({ html: document.documentElement.outerHTML, title: document.title, url: window.location.href })'
+    // Execute content script to get HTML using Manifest V3 API
+    const results = await browser.scripting.executeScript({
+      target: { tabId: tabs[0].id },
+      func: () => {
+        return {
+          html: document.documentElement.outerHTML,
+          title: document.title,
+          url: window.location.href
+        };
+      }
     });
     
-    if (!results || !results[0]) {
+    if (!results || !results[0] || !results[0].result) {
       showStatus('Error: Could not access page', 'error');
       return;
     }
     
-    const data = JSON.parse(results[0]);
+    const data = results[0].result;
     
     // Get server URL from storage
     const config = await browser.storage.sync.get(['serverUrl']);
