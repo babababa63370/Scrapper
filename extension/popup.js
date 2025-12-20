@@ -1,6 +1,6 @@
 // Load saved server URL on popup open
 document.addEventListener('DOMContentLoaded', async () => {
-  const result = await browser.storage.sync.get(['serverUrl']);
+  const result = await browser.storage.sync.get('serverUrl');
   if (result.serverUrl) {
     document.getElementById('serverUrl').value = result.serverUrl;
   }
@@ -33,7 +33,6 @@ document.getElementById('resetBtn').addEventListener('click', async () => {
 
 // Scrape page
 document.getElementById('scrapeBtn').addEventListener('click', async () => {
-  const statusDiv = document.getElementById('status');
   showStatus('Scraping...', 'info');
   
   try {
@@ -44,12 +43,10 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
       return;
     }
     
-    const tab = tabs[0];
-    
     // Execute content script to get HTML and CSS using Manifest V3 API
     const results = await browser.scripting.executeScript({
       target: { tabId: tabs[0].id },
-      func: async () => {
+      func: () => {
         // Collect all CSS from stylesheets
         let cssContent = '';
         
@@ -59,30 +56,14 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
           cssContent += style.textContent + '\n';
         });
         
-        // Get CSS from <link> tags (external stylesheets) - try to fetch content
+        // Get CSS from <link> tags (external stylesheets)
         const linkTags = document.querySelectorAll('link[rel="stylesheet"]');
-        for (const link of linkTags) {
-          try {
-            const response = await fetch(link.href, {
-              mode: 'no-cors'
-            });
-            // With no-cors, response.text() may not work, so we'll add a comment
-            cssContent += '\n/* External stylesheet: ' + link.href + ' */\n';
-            if (response.ok) {
-              try {
-                const css = await response.text();
-                cssContent += css + '\n';
-              } catch (e) {
-                cssContent += '/* Content not available due to CORS restrictions */\n';
-              }
-            }
-          } catch (e) {
-            cssContent += '\n/* Could not fetch: ' + link.href + ' */\n';
-          }
-        }
+        linkTags.forEach(link => {
+          // Add reference to external stylesheet since CORS may block fetching
+          cssContent += '\n/* External stylesheet: ' + link.href + ' */\n';
+        });
         
-        // Get computed styles - capture all applied styles
-        cssContent += '\n/* Note: The above includes all available CSS from <style> tags and external stylesheets */\n';
+        cssContent += '\n/* Note: External stylesheets are referenced above. Full content may not be available due to CORS restrictions */\n';
         
         return {
           html: document.documentElement.outerHTML,
@@ -102,7 +83,7 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
     const data = results[0].result;
     
     // Get server URL from storage
-    const config = await browser.storage.sync.get(['serverUrl']);
+    const config = await browser.storage.sync.get('serverUrl');
     let serverUrl = config.serverUrl || window.location.origin;
     
     // Ensure no trailing slash
@@ -142,12 +123,11 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
 
 // Download scraped data
 document.getElementById('downloadBtn').addEventListener('click', async () => {
-  const statusDiv = document.getElementById('status');
   showStatus('Downloading...', 'info');
   
   try {
     // Get server URL from storage
-    const config = await browser.storage.sync.get(['serverUrl']);
+    const config = await browser.storage.sync.get('serverUrl');
     let serverUrl = config.serverUrl || window.location.origin;
     
     // Ensure no trailing slash
