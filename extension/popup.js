@@ -95,6 +95,51 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
   }
 });
 
+// Download scraped data
+document.getElementById('downloadBtn').addEventListener('click', async () => {
+  const statusDiv = document.getElementById('status');
+  showStatus('Downloading...', 'info');
+  
+  try {
+    // Get server URL from storage
+    const config = await browser.storage.sync.get(['serverUrl']);
+    let serverUrl = config.serverUrl || window.location.origin;
+    
+    // Ensure no trailing slash
+    serverUrl = serverUrl.replace(/\/$/, '');
+    const apiUrl = serverUrl + '/api/pages';
+    
+    // Fetch all scraped pages
+    const response = await fetch(apiUrl);
+    
+    if (!response.ok) {
+      showStatus('Error: Could not fetch data', 'error');
+      return;
+    }
+    
+    const pages = await response.json();
+    
+    // Create JSON file
+    const dataStr = JSON.stringify(pages, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    // Trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `scraped-pages-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showStatus(`Downloaded ${pages.length} pages!`, 'success');
+  } catch (err) {
+    console.error('Download error:', err);
+    showStatus('Error: ' + err.message, 'error');
+  }
+});
+
 function showStatus(message, type) {
   const statusDiv = document.getElementById('status');
   statusDiv.textContent = message;

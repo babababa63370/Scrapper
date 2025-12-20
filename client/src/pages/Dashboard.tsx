@@ -7,16 +7,22 @@ import {
   Clock, 
   FileCode, 
   AlertCircle,
-  Code
+  Code,
+  Upload,
+  Download
 } from "lucide-react";
 import { format } from "date-fns";
 import { StatCard } from "@/components/StatCard";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { queryClient } from "@/lib/queryClient";
+import { api } from "@shared/routes";
 
 export default function Dashboard() {
   const { data: pages, isLoading, error } = useScrapedPages();
   const deletePageMutation = useDeletePage();
   const [search, setSearch] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
 
   if (isLoading) {
     return (
@@ -51,6 +57,67 @@ export default function Dashboard() {
     (p.title && p.title.toLowerCase().includes(search.toLowerCase()))
   ) || [];
 
+  const handleExport = () => {
+    if (!pages) return;
+    const dataStr = JSON.stringify(pages, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `scraped-pages-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    try {
+      const content = await file.text();
+      const importedPages = JSON.parse(content);
+      
+      if (!Array.isArray(importedPages)) {
+        alert('Invalid file format. Expected an array of pages.');
+        return;
+      }
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const page of importedPages) {
+        try {
+          await fetch(api.pages.create.path, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: page.url,
+              title: page.title,
+              htmlContent: page.htmlContent
+            })
+          });
+          successCount++;
+        } catch (err) {
+          errorCount++;
+          console.error('Error importing page:', err);
+        }
+      }
+
+      await queryClient.invalidateQueries({ queryKey: [api.pages.list.path] });
+      alert(`Import complete: ${successCount} pages imported${errorCount > 0 ? `, ${errorCount} failed` : ''}`);
+    } catch (err) {
+      alert('Error reading file: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -81,6 +148,34 @@ export default function Dashboard() {
       <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
         <div className="p-6 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-gray-900">Recent Captures</h2>
+          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+            <button
+              onClick={handleExport}
+              disabled={!pages || pages.length === 0}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              data-testid="button-export-data"
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importing}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              data-testid="button-import-data"
+            >
+              <Upload className="w-4 h-4" />
+              {importing ? 'Importing...' : 'Import'}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+              data-testid="input-import-file"
+            />
+          </div>
           <div className="relative w-full md:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
