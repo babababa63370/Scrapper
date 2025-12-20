@@ -11,6 +11,11 @@
     "http://*/*",
     "https://*/*"
   ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "web-scraper@localhost"
+    }
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
