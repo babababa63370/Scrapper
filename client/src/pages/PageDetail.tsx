@@ -81,7 +81,7 @@ export default function PageDetail() {
               <span className="w-2 h-2 rounded-full bg-green-500"></span>
               Rendered Preview
             </h3>
-            <PagePreview htmlContent={page.htmlContent} cssContent={page.cssContent} />
+            <PagePreview htmlContent={page.htmlContent} cssContent={page.cssContent} baseUrl={page.baseUrl || undefined} />
           </div>
         </div>
         <div className="space-y-4">

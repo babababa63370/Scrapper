@@ -49,7 +49,7 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
     // Execute content script to get HTML and CSS using Manifest V3 API
     const results = await browser.scripting.executeScript({
       target: { tabId: tabs[0].id },
-      func: () => {
+      func: async () => {
         // Collect all CSS from stylesheets
         let cssContent = '';
         
@@ -59,27 +59,37 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
           cssContent += style.textContent + '\n';
         });
         
-        // Get CSS from <link> tags (external stylesheets) - collect URLs for reference
+        // Get CSS from <link> tags (external stylesheets) - try to fetch content
         const linkTags = document.querySelectorAll('link[rel="stylesheet"]');
-        linkTags.forEach(link => {
-          cssContent += '\n/* External stylesheet: ' + link.href + ' */\n';
-        });
-        
-        // Get all style attributes from elements
-        const elementsWithStyles = document.querySelectorAll('[style]');
-        if (elementsWithStyles.length > 0) {
-          cssContent += '\n/* Inline styles from page elements */\n';
-          elementsWithStyles.forEach((el, index) => {
-            cssContent += '/* Element ' + index + ': ' + el.tagName + ' */\n';
-            cssContent += '/* style="' + el.getAttribute('style') + '" */\n';
-          });
+        for (const link of linkTags) {
+          try {
+            const response = await fetch(link.href, {
+              mode: 'no-cors'
+            });
+            // With no-cors, response.text() may not work, so we'll add a comment
+            cssContent += '\n/* External stylesheet: ' + link.href + ' */\n';
+            if (response.ok) {
+              try {
+                const css = await response.text();
+                cssContent += css + '\n';
+              } catch (e) {
+                cssContent += '/* Content not available due to CORS restrictions */\n';
+              }
+            }
+          } catch (e) {
+            cssContent += '\n/* Could not fetch: ' + link.href + ' */\n';
+          }
         }
+        
+        // Get computed styles - capture all applied styles
+        cssContent += '\n/* Note: The above includes all available CSS from <style> tags and external stylesheets */\n';
         
         return {
           html: document.documentElement.outerHTML,
           title: document.title,
           url: window.location.href,
-          css: cssContent
+          css: cssContent,
+          baseUrl: window.location.href
         };
       }
     });
@@ -109,7 +119,8 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
         url: data.url,
         title: data.title,
         htmlContent: data.html,
-        cssContent: data.css
+        cssContent: data.css,
+        baseUrl: data.baseUrl
       })
     });
     
