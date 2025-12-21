@@ -6,9 +6,9 @@ export const scrapedPages = pgTable("scraped_pages", {
   id: serial("id").primaryKey(),
   url: text("url").notNull(),
   title: text("title"),
-  htmlContent: text("html_content").notNull(), // The raw HTML
-  cssContent: text("css_content"), // All CSS from the page
-  baseUrl: text("base_url"), // Base URL for resolving relative links
+  htmlContent: text("html_content").notNull(),
+  cssContent: text("css_content"),
+  baseUrl: text("base_url"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

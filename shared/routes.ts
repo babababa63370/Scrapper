@@ -48,6 +48,14 @@ export const api = {
         404: errorSchemas.notFound,
       },
     },
+    upload: {
+      method: 'POST' as const,
+      path: '/api/pages/upload',
+      responses: {
+        201: z.object({ count: z.number(), message: z.string() }),
+        400: errorSchemas.validation,
+      },
+    },
   },
 };
 
