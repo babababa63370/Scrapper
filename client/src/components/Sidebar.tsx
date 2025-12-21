@@ -1,11 +1,12 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Puzzle, Github, ExternalLink } from "lucide-react";
+import { LayoutDashboard, Puzzle, Code } from "lucide-react";
 
 export function Sidebar() {
   const [location] = useLocation();
 
   const navItems = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard" },
+    { href: "/viewer", icon: Code, label: "HTML Viewer" },
     { href: "/extension", icon: Puzzle, label: "Extension Setup" },
   ];
 
